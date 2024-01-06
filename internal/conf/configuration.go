@@ -22,10 +22,12 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-const defaultMinPasswordLength int = 6
-const defaultChallengeExpiryDuration float64 = 300
-const defaultFactorExpiryDuration time.Duration = 300 * time.Second
-const defaultFlowStateExpiryDuration time.Duration = 300 * time.Second
+const (
+	defaultMinPasswordLength       int           = 6
+	defaultChallengeExpiryDuration float64       = 300
+	defaultFactorExpiryDuration    time.Duration = 300 * time.Second
+	defaultFlowStateExpiryDuration time.Duration = 300 * time.Second
+)
 
 // See: https://www.postgresql.org/docs/7.0/syntax525.htm
 var postgresNamesRegexp = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]{0,62}$`)
@@ -34,8 +36,10 @@ var postgresNamesRegexp = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]{0,62}$`)
 // We use 4 * Math.ceil(n/3) to obtain unpadded length in base 64
 // So this 4 * Math.ceil(24/3) = 32 and 4 * Math.ceil(64/3) = 88 for symmetric secrets
 // Since Ed25519 key is 32 bytes so we have 4 * Math.ceil(32/3) = 44
-var symmetricSecretFormat = regexp.MustCompile(`^v1,whsec_[A-Za-z0-9+/=]{32,88}`)
-var asymmetricSecretFormat = regexp.MustCompile(`^v1a,whpk_[A-Za-z0-9+/=]{44,}:whsk_[A-Za-z0-9+/=]{44,}$`)
+var (
+	symmetricSecretFormat  = regexp.MustCompile(`^v1,whsec_[A-Za-z0-9+/=]{32,88}`)
+	asymmetricSecretFormat = regexp.MustCompile(`^v1a,whpk_[A-Za-z0-9+/=]{44,}:whsk_[A-Za-z0-9+/=]{44,}$`)
+)
 
 // Time is used to represent timestamps in the configuration, as envconfig has
 // trouble parsing empty strings, due to time.Time.UnmarshalText().
@@ -69,6 +73,17 @@ type OAuthProviderConfiguration struct {
 	// SkipNonceCheck bypasses nonce verification during OIDC token validation.
 	// Note: Nonce verification helps prevent replay attacks; only disable when necessary.
 	SkipNonceCheck bool `json:"skip_nonce_check" split_words:"true"`
+}
+
+// GenericOAuthProviderConfiguration holds all config related to generic OAuth providers.
+type GenericOAuthProviderConfiguration struct {
+	*OAuthProviderConfiguration
+	RequiresPKCE    bool              `json:"requires_pkce" split_words:"true"`
+	Issuer          string            `json:"issuer"`
+	AuthURL         string            `json:"auth_url" split_words:"true"`
+	TokenURL        string            `json:"token_url" split_words:"true"`
+	ProfileURL      string            `json:"profile_url" split_words:"true"`
+	UserDataMapping map[string]string `json:"user_data_mapping" split_words:"true"`
 }
 
 // OAuthServerConfiguration holds OAuth server configuration
@@ -288,7 +303,6 @@ type ExperimentalConfiguration struct {
 // * You must provide the --config-dir flag for these settings to take effect.
 // * These config values are for startup, they remain static through reloads.
 type ReloadingConfiguration struct {
-
 	// If notify reloading is enabled the auth server will attempt to use the
 	// filesystems notification support to watch for config updates.
 	NotifyEnabled bool `json:"notify_enabled" split_words:"true" default:"true"`
@@ -413,38 +427,41 @@ type NotificationsConfiguration struct {
 }
 
 type ProviderConfiguration struct {
-	AnonymousUsers          AnonymousProviderConfiguration `json:"anonymous_users" split_words:"true"`
-	Apple                   OAuthProviderConfiguration     `json:"apple"`
-	Azure                   OAuthProviderConfiguration     `json:"azure"`
-	Bitbucket               OAuthProviderConfiguration     `json:"bitbucket"`
-	Discord                 OAuthProviderConfiguration     `json:"discord"`
-	Facebook                OAuthProviderConfiguration     `json:"facebook"`
-	Snapchat                OAuthProviderConfiguration     `json:"snapchat"`
-	Figma                   OAuthProviderConfiguration     `json:"figma"`
-	Fly                     OAuthProviderConfiguration     `json:"fly"`
-	Github                  OAuthProviderConfiguration     `json:"github"`
-	Gitlab                  OAuthProviderConfiguration     `json:"gitlab"`
-	Google                  OAuthProviderConfiguration     `json:"google"`
-	Kakao                   OAuthProviderConfiguration     `json:"kakao"`
-	Notion                  OAuthProviderConfiguration     `json:"notion"`
-	Keycloak                OAuthProviderConfiguration     `json:"keycloak"`
-	Linkedin                OAuthProviderConfiguration     `json:"linkedin"`
-	LinkedinOIDC            OAuthProviderConfiguration     `json:"linkedin_oidc" envconfig:"LINKEDIN_OIDC"`
-	Spotify                 OAuthProviderConfiguration     `json:"spotify"`
-	Slack                   OAuthProviderConfiguration     `json:"slack"`
-	SlackOIDC               OAuthProviderConfiguration     `json:"slack_oidc" envconfig:"SLACK_OIDC"`
-	Twitter                 OAuthProviderConfiguration     `json:"twitter"`
-	Twitch                  OAuthProviderConfiguration     `json:"twitch"`
-	VercelMarketplace       OAuthProviderConfiguration     `json:"vercel_marketplace" split_words:"true"`
-	WorkOS                  OAuthProviderConfiguration     `json:"workos"`
-	Email                   EmailProviderConfiguration     `json:"email"`
-	Phone                   PhoneProviderConfiguration     `json:"phone"`
-	X                       OAuthProviderConfiguration     `json:"x" envconfig:"X"`
-	Zoom                    OAuthProviderConfiguration     `json:"zoom"`
-	IosBundleId             string                         `json:"ios_bundle_id" split_words:"true"`
-	RedirectURL             string                         `json:"redirect_url"`
-	AllowedIdTokenIssuers   []string                       `json:"allowed_id_token_issuers" split_words:"true"`
-	FlowStateExpiryDuration time.Duration                  `json:"flow_state_expiry_duration" split_words:"true"`
+	AnonymousUsers          AnonymousProviderConfiguration    `json:"anonymous_users" split_words:"true"`
+	Apple                   OAuthProviderConfiguration        `json:"apple"`
+	Azure                   OAuthProviderConfiguration        `json:"azure"`
+	Bitbucket               OAuthProviderConfiguration        `json:"bitbucket"`
+	Discord                 OAuthProviderConfiguration        `json:"discord"`
+	Facebook                OAuthProviderConfiguration        `json:"facebook"`
+	Snapchat                OAuthProviderConfiguration        `json:"snapchat"`
+	Figma                   OAuthProviderConfiguration        `json:"figma"`
+	Fly                     OAuthProviderConfiguration        `json:"fly"`
+	Generic1                GenericOAuthProviderConfiguration `json:"generic1"`
+	Generic2                GenericOAuthProviderConfiguration `json:"generic2"`
+	Generic3                GenericOAuthProviderConfiguration `json:"generic3"`
+	Github                  OAuthProviderConfiguration        `json:"github"`
+	Gitlab                  OAuthProviderConfiguration        `json:"gitlab"`
+	Google                  OAuthProviderConfiguration        `json:"google"`
+	Kakao                   OAuthProviderConfiguration        `json:"kakao"`
+	Notion                  OAuthProviderConfiguration        `json:"notion"`
+	Keycloak                OAuthProviderConfiguration        `json:"keycloak"`
+	Linkedin                OAuthProviderConfiguration        `json:"linkedin"`
+	LinkedinOIDC            OAuthProviderConfiguration        `json:"linkedin_oidc" envconfig:"LINKEDIN_OIDC"`
+	Spotify                 OAuthProviderConfiguration        `json:"spotify"`
+	Slack                   OAuthProviderConfiguration        `json:"slack"`
+	SlackOIDC               OAuthProviderConfiguration        `json:"slack_oidc" envconfig:"SLACK_OIDC"`
+	Twitter                 OAuthProviderConfiguration        `json:"twitter"`
+	Twitch                  OAuthProviderConfiguration        `json:"twitch"`
+	VercelMarketplace       OAuthProviderConfiguration        `json:"vercel_marketplace" split_words:"true"`
+	WorkOS                  OAuthProviderConfiguration        `json:"workos"`
+	Email                   EmailProviderConfiguration        `json:"email"`
+	Phone                   PhoneProviderConfiguration        `json:"phone"`
+	X                       OAuthProviderConfiguration        `json:"x" envconfig:"X"`
+	Zoom                    OAuthProviderConfiguration        `json:"zoom"`
+	IosBundleId             string                            `json:"ios_bundle_id" split_words:"true"`
+	RedirectURL             string                            `json:"redirect_url"`
+	AllowedIdTokenIssuers   []string                          `json:"allowed_id_token_issuers" split_words:"true"`
+	FlowStateExpiryDuration time.Duration                     `json:"flow_state_expiry_duration" split_words:"true"`
 
 	Web3Solana   SolanaConfiguration   `json:"web3_solana" split_words:"true"`
 	Web3Ethereum EthereumConfiguration `json:"web3_ethereum" split_words:"true"`
@@ -857,7 +874,8 @@ func validatePostgresPath(u *url.URL) error {
 }
 
 func isValidSecretFormat(secret string) bool {
-	return symmetricSecretFormat.MatchString(secret) || asymmetricSecretFormat.MatchString(secret)
+	return symmetricSecretFormat.MatchString(secret) ||
+		asymmetricSecretFormat.MatchString(secret)
 }
 
 func validateHTTPHookSecrets(secrets []string) error {
@@ -1196,11 +1214,13 @@ func (config *GlobalConfiguration) ApplyDefaults() error {
 	}
 
 	if len(config.External.AllowedIdTokenIssuers) == 0 {
-		config.External.AllowedIdTokenIssuers = append(config.External.AllowedIdTokenIssuers, "https://appleid.apple.com", "https://accounts.google.com")
+		config.External.AllowedIdTokenIssuers = append(
+			config.External.AllowedIdTokenIssuers, "https://appleid.apple.com", "https://accounts.google.com")
 	}
 
 	return nil
 }
+
 func (config *GlobalConfiguration) applyDefaultsJWT(secret []byte) error {
 	// transform the secret into a JWK for consistency
 	privKey, err := jwk.FromRaw(secret)

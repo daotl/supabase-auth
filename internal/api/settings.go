@@ -12,6 +12,9 @@ type ProviderSettings struct {
 	Snapchat       bool `json:"snapchat"`
 	Figma          bool `json:"figma"`
 	Fly            bool `json:"fly"`
+	Generic1       bool `json:"generic1"`
+	Generic2       bool `json:"generic2"`
+	Generic3       bool `json:"generic3"`
 	GitHub         bool `json:"github"`
 	GitLab         bool `json:"gitlab"`
 	Google         bool `json:"google"`
@@ -54,6 +57,9 @@ func (a *API) Settings(w http.ResponseWriter, r *http.Request) error {
 			Snapchat:       config.External.Snapchat.Enabled,
 			Figma:          config.External.Figma.Enabled,
 			Fly:            config.External.Fly.Enabled,
+			Generic1:       config.External.Generic1.Enabled,
+			Generic2:       config.External.Generic2.Enabled,
+			Generic3:       config.External.Generic3.Enabled,
 			GitHub:         config.External.Github.Enabled,
 			GitLab:         config.External.Gitlab.Enabled,
 			Google:         config.External.Google.Enabled,

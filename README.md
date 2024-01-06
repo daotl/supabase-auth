@@ -433,7 +433,7 @@ The default group to assign all new users to.
 
 ### External Authentication Providers
 
-We support `apple`, `azure`, `bitbucket`, `discord`, `facebook`, `figma`, `github`, `gitlab`, `google`, `keycloak`, `linkedin`, `notion`, `snapchat`, `spotify`, `slack`, `twitch`, `twitter` and `workos` for external authentication.
+We support `apple`, `azure`, `bitbucket`, `discord`, `facebook`, `figma`, `generic`, `github`, `gitlab`, `google`, `keycloak`, `linkedin`, `notion`, `snapchat`, `spotify`, `slack`, `twitch`, `twitter` and `workos` for external authentication.
 
 Use the names as the keys underneath `external` to configure each separately.
 
@@ -465,6 +465,62 @@ The URI a OAuth2 provider will redirect to with the `code` and `state` values.
 `EXTERNAL_X_URL` - `string`
 
 The base URL used for constructing the URLs to request authorization and access tokens. Used by `gitlab` and `keycloak`. For `gitlab` it defaults to `https://gitlab.com`. For `keycloak` you need to set this to your instance, for example: `https://keycloak.example.com/realms/myrealm`
+
+#### Generic OAuth
+
+Supabase Auth supports three generic OAuth2/OIDC providers: `generic1`, `generic2`, and `generic3`. These allow you to configure any OAuth2 or OIDC-compatible identity provider that isn't explicitly supported.
+
+**Required configuration:**
+
+```properties
+GOTRUE_EXTERNAL_GENERIC1_ENABLED=true
+GOTRUE_EXTERNAL_GENERIC1_CLIENT_ID=myappclientid
+GOTRUE_EXTERNAL_GENERIC1_SECRET=clientsecretvaluessssh
+GOTRUE_EXTERNAL_GENERIC1_REDIRECT_URI=http://localhost:3000/callback
+GOTRUE_EXTERNAL_GENERIC1_ISSUER=https://example.com
+GOTRUE_EXTERNAL_GENERIC1_AUTH_URL=https://example.com/oauth/authorize
+GOTRUE_EXTERNAL_GENERIC1_TOKEN_URL=https://example.com/oauth/token
+GOTRUE_EXTERNAL_GENERIC1_PROFILE_URL=https://example.com/oauth/userinfo
+```
+
+**User data mapping:**
+
+The `GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING` setting maps fields from the OAuth provider's userinfo response to Supabase Auth user claims. The format is `GotrueClaim:ProviderField` where `ProviderField` can use dot notation for nested fields.
+
+```properties
+GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING=Email:email,Name:name,Avatar:picture,Subject:id
+```
+
+Supported GotrueClaim names:
+- `Email` - user's email address
+- `EmailVerified` - whether email is verified
+- `EmailPrimary` - whether this is the primary email
+- `Issuer` - OIDC issuer URL
+- `Subject` - unique user identifier from the provider
+- `Name` - user's full name
+- `FamilyName` - user's last name
+- `GivenName` - user's first name
+- `MiddleName` - user's middle name
+- `NickName` - user's nickname
+- `PreferredUsername` - user's preferred username
+- `Profile` - URL to user's profile
+- `Picture` - URL to user's avatar picture
+- `Website` - user's website URL
+- `Gender` - user's gender
+- `Birthdate` - user's birthdate
+- `ZoneInfo` - user's timezone
+- `Locale` - user's locale
+- `UpdatedAt` - timestamp of last update
+- `Phone` - user's phone number
+- `PhoneVerified` - whether phone is verified
+
+**PKCE support:**
+
+For providers that require PKCE (Proof Key for Code Exchange), enable it with:
+
+```properties
+GOTRUE_EXTERNAL_GENERIC1_REQUIRES_PKCE=true
+```
 
 #### Apple OAuth
 
