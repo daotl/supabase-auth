@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   packages: write
-  id-token: write
 
 jobs:
   publish:
@@ -18,7 +17,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -27,16 +25,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            supabase/gotrue
-            public.ecr.aws/supabase/gotrue
-            ghcr.io/supabase/gotrue
-            ghcr.io/supabase/auth
-            436098097459.dkr.ecr.us-east-1.amazonaws.com/gotrue
-            646182064048.dkr.ecr.us-east-1.amazonaws.com/gotrue
-            supabase/auth
-            public.ecr.aws/supabase/auth
-            436098097459.dkr.ecr.us-east-1.amazonaws.com/auth
-            646182064048.dkr.ecr.us-east-1.amazonaws.com/auth
+            daotl/gotrue
           flavor: |
             latest=false
           tags: |
@@ -60,37 +49,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: configure aws credentials - prod
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.PROD_AWS_ROLE }}
-          aws-region: us-east-1
-      - name: Login to ECR
-        uses: docker/login-action@v3
-        with:
-          registry: public.ecr.aws
-      - name: Login to ECR account - prod
-        uses: docker/login-action@v3
-        with:
-          registry: 646182064048.dkr.ecr.us-east-1.amazonaws.com
-
-      - name: configure aws credentials - staging
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.DEV_AWS_ROLE }}
-          aws-region: us-east-1
-      - name: Login to ECR account - staging
-        uses: docker/login-action@v3
-        with:
-          registry: 436098097459.dkr.ecr.us-east-1.amazonaws.com
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/build-push-action@v6
         with:
