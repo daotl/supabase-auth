@@ -470,7 +470,29 @@ The base URL used for constructing the URLs to request authorization and access 
 
 Supabase Auth supports three generic OAuth2/OIDC providers: `generic1`, `generic2`, and `generic3`. These allow you to configure any OAuth2 or OIDC-compatible identity provider that isn't explicitly supported.
 
-**Required configuration:**
+**Option 1: OIDC Discovery (Recommended)**
+
+If your identity provider supports [OpenID Connect Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html), you can set a single discovery URL instead of configuring each endpoint separately:
+
+```properties
+GOTRUE_EXTERNAL_GENERIC1_ENABLED=true
+GOTRUE_EXTERNAL_GENERIC1_CLIENT_ID=myappclientid
+GOTRUE_EXTERNAL_GENERIC1_SECRET=clientsecretvaluessssh
+GOTRUE_EXTERNAL_GENERIC1_REDIRECT_URI=http://localhost:3000/callback
+GOTRUE_EXTERNAL_GENERIC1_DISCOVERY_URL=https://example.com/.well-known/openid-configuration
+```
+
+When `DISCOVERY_URL` is set, the provider will automatically fetch the OIDC Discovery document to obtain:
+- `issuer` (from the `issuer` field)
+- `authorization_endpoint` (for the auth URL)
+- `token_endpoint` (for the token URL)
+- `userinfo_endpoint` (for the profile URL)
+
+Note: If `DISCOVERY_URL` is set, it takes precedence over any explicitly configured `AUTH_URL`, `TOKEN_URL`, or `PROFILE_URL`.
+
+**Option 2: Explicit URL Configuration**
+
+Alternatively, you can configure each endpoint explicitly:
 
 ```properties
 GOTRUE_EXTERNAL_GENERIC1_ENABLED=true

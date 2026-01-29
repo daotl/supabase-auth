@@ -3,12 +3,14 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/supabase/auth/internal/conf"
 	"github.com/supabase/auth/internal/utilities"
@@ -262,10 +264,63 @@ func getBooleanFieldByPath(obj map[string]interface{}, path string, fallback boo
 	}
 }
 
-// NewGenericProvider creates an OAuth provider according to the config specified by the user
+// OIDCDiscovery represents the OIDC Discovery document
+// https://openid.net/specs/openid-connect-discovery-1_0.html
+type OIDCDiscovery struct {
+	Issuer                            string `json:"issuer"`
+	AuthorizationEndpoint             string `json:"authorization_endpoint"`
+	TokenEndpoint                     string `json:"token_endpoint"`
+	UserinfoEndpoint                  string `json:"userinfo_endpoint"`
+	JWKSURI                           string `json:"jwks_uri"`
+	ScopesSupported                   []string `json:"scopes_supported"`
+	ResponseTypesSupported            []string `json:"response_types_supported"`
+	SubjectTypesSupported             []string `json:"subject_types_supported"`
+	IDTokenSigningAlgValuesSupported  []string `json:"id_token_signing_alg_values_supported"`
+}
+
+// NewGenericProvider creates an OAuth provider according to the config specified by the user.
+// If DiscoveryURL is set, it will fetch the OIDC Discovery document to obtain the
+// authorization_endpoint, token_endpoint, and userinfo_endpoint.
 func NewGenericProvider(ext conf.GenericOAuthProviderConfiguration, scopes string) (OAuthProvider, error) {
 	if err := ext.ValidateOAuth(); err != nil {
 		return nil, err
+	}
+
+	// Determine auth URL, token URL, and profile URL
+	var authURL, tokenURL, profileURL, issuer string
+
+	if ext.DiscoveryURL != "" {
+		// Fetch OIDC Discovery document
+		discovery, err := fetchOIDCDiscovery(ext.DiscoveryURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch OIDC discovery document: %w", err)
+		}
+
+		// Use discovered values
+		authURL = discovery.AuthorizationEndpoint
+		tokenURL = discovery.TokenEndpoint
+		profileURL = discovery.UserinfoEndpoint
+		issuer = discovery.Issuer
+
+		// Validate required endpoints
+		if authURL == "" {
+			return nil, errors.New("discovery document missing authorization_endpoint")
+		}
+		if tokenURL == "" {
+			return nil, errors.New("discovery document missing token_endpoint")
+		}
+	} else {
+		// Use explicitly configured URLs
+		if ext.AuthURL == "" {
+			return nil, errors.New("missing auth_url (or set discovery_url for OIDC discovery)")
+		}
+		if ext.TokenURL == "" {
+			return nil, errors.New("missing token_url (or set discovery_url for OIDC discovery)")
+		}
+		authURL = ext.AuthURL
+		tokenURL = ext.TokenURL
+		profileURL = ext.ProfileURL
+		issuer = ext.Issuer
 	}
 
 	oauthScopes := strings.Split(scopes, ",")
@@ -275,15 +330,42 @@ func NewGenericProvider(ext conf.GenericOAuthProviderConfiguration, scopes strin
 			ClientID:     ext.ClientID[0],
 			ClientSecret: ext.Secret,
 			Endpoint: oauth2.Endpoint{
-				AuthURL:  ext.AuthURL,
-				TokenURL: ext.TokenURL,
+				AuthURL:  authURL,
+				TokenURL: tokenURL,
 			},
 			RedirectURL: ext.RedirectURI,
 			Scopes:      oauthScopes,
 		},
 		requiresPKCE:    ext.RequiresPKCE,
-		issuer:          ext.Issuer,
-		profileURL:      ext.ProfileURL,
+		issuer:          issuer,
+		profileURL:      profileURL,
 		userDataMapping: ext.UserDataMapping,
 	}, nil
+}
+
+// fetchOIDCDiscovery fetches the OIDC Discovery document from the given URL
+func fetchOIDCDiscovery(discoveryURL string) (*OIDCDiscovery, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("GET", discoveryURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("discovery endpoint returned status %d", resp.StatusCode)
+	}
+
+	var discovery OIDCDiscovery
+	if err := json.NewDecoder(resp.Body).Decode(&discovery); err != nil {
+		return nil, err
+	}
+
+	return &discovery, nil
 }

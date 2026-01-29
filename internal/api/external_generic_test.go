@@ -81,7 +81,36 @@ func (ts *ExternalTestSuite) TestSignupExternalGenericWithPKCE() {
 	ts.Equal("s256", *flowState.CodeChallengeMethod)
 }
 
+func (ts *ExternalTestSuite) TestSignupExternalGenericWithOIDCDiscovery() {
+	// This test uses the actual DISCOVERY_URL from hack/test.env
+	// which should point to a real OIDC discovery endpoint
+	discoveryURL := ts.Config.External.Generic1.DiscoveryURL
+	ts.Require().NotEmpty(discoveryURL, "DISCOVERY_URL must be configured in test.env")
+
+	// Test authorization flow - should redirect to discovered auth URL
+	req := httptest.NewRequest(http.MethodGet, "http://localhost/authorize?provider=generic1", nil)
+	w := httptest.NewRecorder()
+	ts.API.handler.ServeHTTP(w, req)
+	ts.Require().Equal(http.StatusFound, w.Code)
+
+	u, err := url.Parse(w.Header().Get("Location"))
+	ts.Require().NoError(err)
+	q := u.Query()
+
+	// Verify redirect is to a valid authorization endpoint (not the mock server)
+	ts.NotEqual("http://localhost", u.Scheme+"://"+u.Host)
+	ts.Equal("code", q.Get("response_type"))
+	ts.NotEmpty(q.Get("state"))
+
+	// The redirect URL should contain client_id from config
+	ts.Equal(ts.Config.External.Generic1.ClientID[0], q.Get("client_id"))
+}
+
 func GenericTestSignupSetup(ts *ExternalTestSuite, tokenCount *int, userCount *int, code string, emails string) *httptest.Server {
+	return GenericTestSignupSetupWithDiscovery(ts, tokenCount, userCount, code, emails, false)
+}
+
+func GenericTestSignupSetupWithDiscovery(ts *ExternalTestSuite, tokenCount *int, userCount *int, code string, emails string, useDiscovery bool) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/token":
@@ -131,9 +160,15 @@ func GenericTestSignupSetup(ts *ExternalTestSuite, tokenCount *int, userCount *i
 			ts.Fail("unknown generic oauth call %s", r.URL.Path)
 		}
 	}))
-	ts.Config.External.Generic1.AuthURL = server.URL + "/authorize"
-	ts.Config.External.Generic1.TokenURL = server.URL + "/token"
-	ts.Config.External.Generic1.ProfileURL = server.URL + "/profile"
+
+	if !useDiscovery {
+		// Use mock server endpoints (clear discovery URL and set explicit URLs)
+		ts.Config.External.Generic1.DiscoveryURL = ""
+		ts.Config.External.Generic1.AuthURL = server.URL + "/authorize"
+		ts.Config.External.Generic1.TokenURL = server.URL + "/token"
+		ts.Config.External.Generic1.ProfileURL = server.URL + "/profile"
+	}
+
 	return server
 }
 

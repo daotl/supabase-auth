@@ -79,6 +79,7 @@ type OAuthProviderConfiguration struct {
 type GenericOAuthProviderConfiguration struct {
 	*OAuthProviderConfiguration
 	RequiresPKCE    bool              `json:"requires_pkce" split_words:"true"`
+	DiscoveryURL    string            `json:"discovery_url" split_words:"true"`
 	Issuer          string            `json:"issuer"`
 	AuthURL         string            `json:"auth_url" split_words:"true"`
 	TokenURL        string            `json:"token_url" split_words:"true"`
