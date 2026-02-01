@@ -437,9 +437,9 @@ type ProviderConfiguration struct {
 	Snapchat                OAuthProviderConfiguration        `json:"snapchat"`
 	Figma                   OAuthProviderConfiguration        `json:"figma"`
 	Fly                     OAuthProviderConfiguration        `json:"fly"`
-	Generic1                GenericOAuthProviderConfiguration `json:"generic1"`
-	Generic2                GenericOAuthProviderConfiguration `json:"generic2"`
-	Generic3                GenericOAuthProviderConfiguration `json:"generic3"`
+	GenericOIDC1            GenericOAuthProviderConfiguration `json:"generic_oidc_1" envconfig:"GENERIC_OIDC_1"`
+	GenericOIDC2            GenericOAuthProviderConfiguration `json:"generic_oidc_2" envconfig:"GENERIC_OIDC_2"`
+	GenericOIDC3            GenericOAuthProviderConfiguration `json:"generic_oidc_3" envconfig:"GENERIC_OIDC_3"`
 	Github                  OAuthProviderConfiguration        `json:"github"`
 	Gitlab                  OAuthProviderConfiguration        `json:"gitlab"`
 	Google                  OAuthProviderConfiguration        `json:"google"`

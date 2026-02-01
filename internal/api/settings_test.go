@@ -47,9 +47,9 @@ func TestSettings_DefaultProviders(t *testing.T) {
 	require.True(t, p.Twitch)
 	require.True(t, p.WorkOS)
 	require.True(t, p.Zoom)
-	require.True(t, p.Generic1)
-	require.True(t, p.Generic2)
-	require.True(t, p.Generic3)
+	require.True(t, p.GenericOIDC1)
+	require.True(t, p.GenericOIDC2)
+	require.True(t, p.GenericOIDC3)
 
 }
 

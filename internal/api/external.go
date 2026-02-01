@@ -698,15 +698,15 @@ func (a *API) Provider(ctx context.Context, name string, scopes string) (provide
 	case "fly":
 		pConfig = config.External.Fly
 		p, err = provider.NewFlyProvider(pConfig, scopes)
-	case "generic1":
-		pConfig = *config.External.Generic1.OAuthProviderConfiguration
-		p, err = provider.NewGenericProvider(config.External.Generic1, scopes)
-	case "generic2":
-		pConfig = *config.External.Generic2.OAuthProviderConfiguration
-		p, err = provider.NewGenericProvider(config.External.Generic2, scopes)
-	case "generic3":
-		pConfig = *config.External.Generic3.OAuthProviderConfiguration
-		p, err = provider.NewGenericProvider(config.External.Generic3, scopes)
+	case "generic_oidc_1":
+		pConfig = *config.External.GenericOIDC1.OAuthProviderConfiguration
+		p, err = provider.NewGenericProvider(config.External.GenericOIDC1, scopes)
+	case "generic_oidc_2":
+		pConfig = *config.External.GenericOIDC2.OAuthProviderConfiguration
+		p, err = provider.NewGenericProvider(config.External.GenericOIDC2, scopes)
+	case "generic_oidc_3":
+		pConfig = *config.External.GenericOIDC3.OAuthProviderConfiguration
+		p, err = provider.NewGenericProvider(config.External.GenericOIDC3, scopes)
 	case "github":
 		pConfig = config.External.Github
 		p, err = provider.NewGithubProvider(pConfig, scopes)

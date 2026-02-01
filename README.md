@@ -466,20 +466,20 @@ The URI a OAuth2 provider will redirect to with the `code` and `state` values.
 
 The base URL used for constructing the URLs to request authorization and access tokens. Used by `gitlab` and `keycloak`. For `gitlab` it defaults to `https://gitlab.com`. For `keycloak` you need to set this to your instance, for example: `https://keycloak.example.com/realms/myrealm`
 
-#### Generic OAuth
+#### Generic OIDC
 
-Supabase Auth supports three generic OAuth2/OIDC providers: `generic1`, `generic2`, and `generic3`. These allow you to configure any OAuth2 or OIDC-compatible identity provider that isn't explicitly supported.
+Supabase Auth supports three generic OIDC providers: `generic_oidc_1`, `generic_oidc_2`, and `generic_oidc_3`. These allow you to configure any OIDC-compatible identity provider that isn't explicitly supported.
 
 **Option 1: OIDC Discovery (Recommended)**
 
 If your identity provider supports [OpenID Connect Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html), you can set a single discovery URL instead of configuring each endpoint separately:
 
 ```properties
-GOTRUE_EXTERNAL_GENERIC1_ENABLED=true
-GOTRUE_EXTERNAL_GENERIC1_CLIENT_ID=myappclientid
-GOTRUE_EXTERNAL_GENERIC1_SECRET=clientsecretvaluessssh
-GOTRUE_EXTERNAL_GENERIC1_REDIRECT_URI=http://localhost:3000/callback
-GOTRUE_EXTERNAL_GENERIC1_DISCOVERY_URL=https://example.com/.well-known/openid-configuration
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_ENABLED=true
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_CLIENT_ID=myappclientid
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_SECRET=clientsecretvaluessssh
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_REDIRECT_URI=http://localhost:3000/callback
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_DISCOVERY_URL=https://example.com/.well-known/openid-configuration
 ```
 
 When `DISCOVERY_URL` is set, the provider will automatically fetch the OIDC Discovery document to obtain:
@@ -495,22 +495,22 @@ Note: If `DISCOVERY_URL` is set, it takes precedence over any explicitly configu
 Alternatively, you can configure each endpoint explicitly:
 
 ```properties
-GOTRUE_EXTERNAL_GENERIC1_ENABLED=true
-GOTRUE_EXTERNAL_GENERIC1_CLIENT_ID=myappclientid
-GOTRUE_EXTERNAL_GENERIC1_SECRET=clientsecretvaluessssh
-GOTRUE_EXTERNAL_GENERIC1_REDIRECT_URI=http://localhost:3000/callback
-GOTRUE_EXTERNAL_GENERIC1_ISSUER=https://example.com
-GOTRUE_EXTERNAL_GENERIC1_AUTH_URL=https://example.com/oauth/authorize
-GOTRUE_EXTERNAL_GENERIC1_TOKEN_URL=https://example.com/oauth/token
-GOTRUE_EXTERNAL_GENERIC1_PROFILE_URL=https://example.com/oauth/userinfo
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_ENABLED=true
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_CLIENT_ID=myappclientid
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_SECRET=clientsecretvaluessssh
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_REDIRECT_URI=http://localhost:3000/callback
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_ISSUER=https://example.com
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_AUTH_URL=https://example.com/oauth/authorize
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_TOKEN_URL=https://example.com/oauth/token
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_PROFILE_URL=https://example.com/oauth/userinfo
 ```
 
 **User data mapping:**
 
-The `GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING` setting maps fields from the OAuth provider's userinfo response to Supabase Auth user claims. The format is `GotrueClaim:ProviderField` where `ProviderField` can use dot notation for nested fields.
+The `GOTRUE_EXTERNAL_GENERIC_OIDC_1_USER_DATA_MAPPING` setting maps fields from the OAuth provider's userinfo response to Supabase Auth user claims. The format is `GotrueClaim:ProviderField` where `ProviderField` can use dot notation for nested fields.
 
 ```properties
-GOTRUE_EXTERNAL_GENERIC1_USER_DATA_MAPPING=Email:email,Name:name,Avatar:picture,Subject:id
+GOTRUE_EXTERNAL_GENERIC_OIDC_1_USER_DATA_MAPPING=Email:email,Name:name,Avatar:picture,Subject:id
 ```
 
 If a field is not explicitly configured in `USER_DATA_MAPPING`, the provider will automatically look for the snake_case version of the field name. For example:
